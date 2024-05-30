@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sheets as Database</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Data from Google Sheets</h1>
+    <table id="data-table">
+        <thead>
+            <tr id="table-header"></tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+    
+    <script>
+        const googleSheetURL = 'YOUR_PUBLISHED_GOOGLE_SHEET_URL';
+        
+        async function fetchData() {
+            try {
+                const response = await fetch(googleSheetURL);
+                const data = await response.json();
+                const sheetData = data.feed.entry;
+
+                // Extract column names
+                const columnNames = [];
+                for (let key in sheetData[0]) {
+                    if (key.startsWith('gsx$')) {
+                        columnNames.push(key.replace('gsx$', ''));
+                    }
+                }
+
+                // Add column names to the table header
+                const headerRow = document.getElementById('table-header');
+                columnNames.forEach(column => {
+                    const th = document.createElement('th');
+                    th.textContent = column;
+                    headerRow.appendChild(th);
+                });
+
+                // Add rows to the table body
+                const tableBody = document.getElementById('table-body');
+                sheetData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    columnNames.forEach(column => {
+                        const td = document.createElement('td');
+                        td.textContent = row['gsx$' + column].$t;
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
